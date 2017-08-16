@@ -1,13 +1,20 @@
 defmodule ErledisSpec do
   use ESpec
-  require IEx
 
-  before do: s = Erledis.start_link
+  before do: Erledis.start_link
 
   describe "set" do
     context "correct key" do
-      it do: expect(Erledis.set("hello", "word")) |> to(be_true())
-      it do: expect(Erledis.set("tuple", {1,2,3})) |> to(be_true())
+      it do
+        Erledis.set("hello", "word")
+        expect(Erledis.exists?("hello")) |> to(be_true())
+        expect(Erledis.get("hello")) |> to(eq "word")
+      end
+      it do
+        Erledis.set("tuple", {1,2,3})
+        expect(Erledis.exists?("tuple")) |> to(be_true())
+        expect(Erledis.get("tuple")) |> to(eq {1,2,3})
+      end
     end
 
     context "element with incorrect key" do
@@ -45,8 +52,16 @@ defmodule ErledisSpec do
     end
 
     context "element with correct key" do
-      it do: expect(Erledis.del("hello")) |> to(be_true())
-      it do: expect(Erledis.del("list")) |> to(be_true())
+      it do
+        Erledis.del("hello")
+        expect(Erledis.exists?("hello")) |> to(be_false())
+        expect(Erledis.get("hello")) |> to(eq nil)
+      end
+      it do
+        Erledis.del("list")
+        expect(Erledis.exists?("list")) |> to(be_false())
+        expect(Erledis.get("list")) |> to(eq nil)
+      end
     end
 
     context "element with incorrect key" do
@@ -89,7 +104,11 @@ defmodule ErledisSpec do
     end
 
     context "should delete all elements" do
-      it do: expect(Erledis.flushall()) |> to(be_true())
+      it do
+        Erledis.flushall()
+        expect(Erledis.exists?("hello")) |> to(be_false())
+        expect(Erledis.exists?("list")) |> to(be_false())
+      end
     end
   end
 end
