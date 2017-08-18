@@ -5,15 +5,19 @@ defmodule ErledisSpec do
 
   describe "set" do
     context "correct key" do
-      it do
-        Erledis.set("hello", "word")
-        expect(Erledis.exists?("hello")) |> to(be_true())
-        expect(Erledis.get("hello")) |> to(eq "word")
+      it "with single element" do
+        Erledis.set("set_1", {1,2,3})
+        expect(Erledis.exists?("set_1")) |> to(be_true())
+        expect(Erledis.get("set_1")) |> to(eq [{1,2,3}])
       end
-      it do
-        Erledis.set("tuple", {1,2,3})
-        expect(Erledis.exists?("tuple")) |> to(be_true())
-        expect(Erledis.get("tuple")) |> to(eq {1,2,3})
+
+      it "with multiple elements" do
+        Erledis.set("set_2", "word")
+        expect(Erledis.exists?("set_2")) |> to(be_true())
+        expect(Erledis.get("set_2")) |> to(eq ["word"])
+        Erledis.set("set_2", [1,2,3])
+        expect(Erledis.exists?("set_2")) |> to(be_true())
+        expect(Erledis.get("set_2")) |> to(eq ["word", [1,2,3]])
       end
     end
 
@@ -25,13 +29,15 @@ defmodule ErledisSpec do
 
   describe "get" do
     before do
-      Erledis.set("hello", "word")
-      Erledis.set("list", [1,2,3])
+      Erledis.flushall()
+      Erledis.set("get_1", "word")
+      Erledis.set("get_1", {1,2,3})
+      Erledis.set("get_2", [1,2,3])
     end
 
     context "value by key" do
-      it do: expect(Erledis.get("hello")) |> to(eq "word")
-      it do: expect(Erledis.get("list")) |> to(eq [1,2,3])
+      it do: expect(Erledis.get("get_1")) |> to(eq ["word", {1,2,3}])
+      it do: expect(Erledis.get("get_2")) |> to(eq [[1,2,3]])
     end
 
     context "element with incorrect key" do
@@ -40,8 +46,8 @@ defmodule ErledisSpec do
     end
 
     context "undefined element" do
-      it do: expect(Erledis.get("atom")) |> to(eq nil)
-      it do: expect(Erledis.get("string")) |> to(eq nil)
+      it do: expect(Erledis.get("atom")) |> to(eq [])
+      it do: expect(Erledis.get("string")) |> to(eq [])
     end
   end
 
@@ -55,12 +61,12 @@ defmodule ErledisSpec do
       it do
         Erledis.del("hello")
         expect(Erledis.exists?("hello")) |> to(be_false())
-        expect(Erledis.get("hello")) |> to(eq nil)
+        expect(Erledis.get("hello")) |> to(eq [])
       end
       it do
         Erledis.del("list")
         expect(Erledis.exists?("list")) |> to(be_false())
-        expect(Erledis.get("list")) |> to(eq nil)
+        expect(Erledis.get("list")) |> to(eq [])
       end
     end
 
