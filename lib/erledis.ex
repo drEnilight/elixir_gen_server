@@ -62,15 +62,19 @@ defmodule Erledis do
     {:ok, t_name}
   end
 
-  def handle_call({:set, term},_from,  table) do
-    status = :ets.insert(table, term)
-    {:reply, status, table}
+  def handle_call({:set, {key, value}}, _from,  table) do
+    case :ets.lookup(table, key) do
+      [{_key, list}|_] -> status = :ets.insert(table, {key, list ++ [value]})
+                          {:reply, status, table}
+                    [] -> status = :ets.insert(table, {key, [value]})
+                          {:reply, status, table}
+    end
   end
 
   def handle_call({:get, key}, _from, table) do
     case :ets.lookup(table, key) do
       [{_key, value}|_] -> {:reply, value, table}
-                _other  -> {:reply, nil, table}
+                     [] -> {:reply, [], table}
     end
   end
 
