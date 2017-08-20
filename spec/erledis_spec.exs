@@ -76,6 +76,36 @@ defmodule ErledisSpec do
     end
   end
 
+  describe "pop" do
+    before do
+      Erledis.flushall()
+      Erledis.set("pop", "word")
+      Erledis.set("pop", [1,2,3])
+      Erledis.set("pop", {1,2,3})
+    end
+
+    context "with correct key" do
+      context "where key is defined" do
+        it do
+          expect(Erledis.pop("pop")) |> to(eq {1,2,3})
+          expect(Erledis.get("pop")) |> to(eq ["word", [1,2,3]])
+          expect(Erledis.pop("pop")) |> to(eq [1,2,3])
+          expect(Erledis.get("pop")) |> to(eq ["word"])
+        end
+      end
+
+      context "where key is undefined" do
+        it do: expect(Erledis.pop("atom")) |> to(eq nil)
+        it do: expect(Erledis.pop("tuple")) |> to(eq nil)
+      end
+    end
+
+    context "with incorrect key" do
+      it do: expect(Erledis.pop(1)) |> to(eq "key argument must be a string")
+      it do: expect(Erledis.pop([1])) |> to(eq "key argument must be a string")
+    end
+  end
+
   describe "delete" do
     before do
       Erledis.set("hello", "word")
