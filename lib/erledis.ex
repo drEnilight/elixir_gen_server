@@ -23,6 +23,14 @@ defmodule Erledis do
     end
   end
 
+  @spec unshift(String.t(), any) :: list
+  def unshift(key, value) do
+    case is_binary(key) do
+      true  -> GenServer.call(:erledis, {:unshift, {key, value}})
+      false -> error_message
+    end
+  end
+
   @spec del(String.t()) :: boolean
   def del(key) do
     case is_binary(key) do
@@ -75,6 +83,15 @@ defmodule Erledis do
     case :ets.lookup(table, key) do
       [{_key, value}|_] -> {:reply, value, table}
                      [] -> {:reply, [], table}
+    end
+  end
+
+  def handle_call({:unshift, {key, value}}, _from,  table) do
+    case :ets.lookup(table, key) do
+      [{_key, list}|_] -> :ets.insert(table, {key, list = [value | list]})
+                          {:reply, list, table}
+                    [] -> status = :ets.insert(table, {key, list = [value]})
+                          {:reply, list, table}
     end
   end
 

@@ -53,6 +53,7 @@ defmodule ErledisSpec do
   describe "unshift" do
     context "with correct key" do
       before do
+        Erledis.flushall()
         Erledis.set("unshift", "word")
       end
 
