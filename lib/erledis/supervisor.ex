@@ -1,8 +1,8 @@
 defmodule Erledis.Supervisor do
   use Supervisor
 
-  def start_link do
-    Supervisor.start_link(__MODULE__, [:erledis])
+  def start_link(name) do
+    Supervisor.start_link(__MODULE__, [], name: name)
   end
 
   def init(_) do
