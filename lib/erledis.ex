@@ -74,9 +74,9 @@ defmodule Erledis do
 
   # CALLBACKS
 
-  def init(table) do
-    t_name = :ets.new(table, [:set, :protected])
-    {:ok, t_name}
+  def init(_) do
+    map = %{}
+    {:ok, map}
   end
 
   def handle_call({:set, {key, value}}, _from,  table) do
