@@ -88,10 +88,10 @@ defmodule Erledis do
     end
   end
 
-  def handle_call({:get, key}, _from, table) do
-    case :ets.lookup(table, key) do
-      [{_key, value}|_] -> {:reply, value, table}
-                     [] -> {:reply, [], table}
+  def handle_call({:get, key}, _from, map) do
+    case Map.get(map, key) do
+      list -> {:reply, list, map}
+       nil -> {:reply, [], map}
     end
   end
 
