@@ -79,12 +79,12 @@ defmodule Erledis do
     {:ok, map}
   end
 
-  def handle_call({:set, {key, value}}, _from,  table) do
-    case :ets.lookup(table, key) do
-      [{_key, list}|_] -> status = :ets.insert(table, {key, list ++ [value]})
-                          {:reply, status, table}
-                    [] -> status = :ets.insert(table, {key, [value]})
-                          {:reply, status, table}
+  def handle_call({:set, {key, value}}, _from,  map) do
+    case Map.get(map, key) do
+      list -> map = Map.put(map, key, list ++ [value])
+              {:reply, true, map}
+       nil -> map = Map.put(map, key, [value])
+              {:reply, true, map}
     end
   end
 
