@@ -120,8 +120,8 @@ defmodule Erledis do
     end
   end
 
-  def handle_call(:flushall, _from, table) do
-    status = :ets.delete_all_objects(table)
-    {:reply, status, table}
+  def handle_call(:flushall, _from, map) do
+    map = %{}
+    {:reply, true, map}
   end
 end
