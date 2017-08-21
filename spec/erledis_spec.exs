@@ -170,6 +170,7 @@ defmodule ErledisSpec do
 
   describe "flushall" do
     before do
+      Erledis.start_link
       Erledis.set("hello", "word")
       Erledis.set("list", [1,2,3])
     end
