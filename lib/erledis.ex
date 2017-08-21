@@ -105,11 +105,11 @@ defmodule Erledis do
     end
   end
 
-  def handle_call({:del, key}, _from, table) do
-    case is_has_object(table, key) do
-      true  -> :ets.delete(table, key)
-               {:reply, true, table}
-      false -> {:reply, false, table}
+  def handle_call({:del, key}, _from, map) do
+    case Map.get(map, key) do
+      list -> map = Map.delete(map, key)
+              {:reply, true, map}
+       nil -> {:reply, false, map}
     end
   end
 
