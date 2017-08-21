@@ -145,12 +145,14 @@ defmodule ErledisSpec do
   end
 
   describe "exists?" do
-    before do
-      Erledis.set("hello", "word")
-      Erledis.set("list", [1,2,3])
-    end
+    before do: Erledis.start_link
 
     context "element with correct key" do
+      before do
+        Erledis.set("hello", "word")
+        Erledis.set("list", [1,2,3])
+      end
+
       it do: expect(Erledis.exists?("hello")) |> to(be_true())
       it do: expect(Erledis.exists?("list")) |> to(be_true())
     end
