@@ -113,9 +113,11 @@ defmodule Erledis do
     end
   end
 
-  def handle_call({:exists, key}, _from, table) do
-    status = is_has_object(table, key)
-    {:reply, status, table}
+  def handle_call({:exists, key}, _from, map) do
+    case Map.get(map, key) do
+      list -> {:reply, true, map}
+       nil -> {:reply, false, map}
+    end
   end
 
   def handle_call(:flushall, _from, table) do
