@@ -1,8 +1,6 @@
 defmodule ErledisSpec do
   use ESpec
 
-  before do: Erledis.start_link
-
   describe "set" do
     before do: Erledis.start_link
 
@@ -29,16 +27,19 @@ defmodule ErledisSpec do
   end
 
   describe "get" do
-    before do
-      Erledis.flushall()
-      Erledis.set("get_1", "word")
-      Erledis.set("get_1", {1,2,3})
-      Erledis.set("get_2", [1,2,3])
-    end
+    before do: Erledis.start_link
 
     context "value by key" do
-      it do: expect(Erledis.get("get_1")) |> to(eq ["word", {1,2,3}])
-      it do: expect(Erledis.get("get_2")) |> to(eq [[1,2,3]])
+      before do
+        Erledis.set("get_1", "word")
+        Erledis.set("get_1", {1,2,3})
+        Erledis.set("get_2", [1,2,3])
+      end
+
+      it do
+        expect(Erledis.get("get_1")) |> to(eq ["word", {1,2,3}])
+        expect(Erledis.get("get_2")) |> to(eq [[1,2,3]])
+      end
     end
 
     context "element with incorrect key" do
