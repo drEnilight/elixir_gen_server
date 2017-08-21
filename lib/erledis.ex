@@ -60,74 +60,68 @@ defmodule Erledis do
     GenServer.call(:erledis, :flushall)
   end
 
-  @spec is_has_object(atom, String.t()) :: boolean
-  defp is_has_object(table, key) do
-    case :ets.lookup(table, key) do
-      [] -> false
-       _ -> true
-    end
-  end
-
   defp error_message do
     "key argument must be a string"
   end
 
   # CALLBACKS
 
-  def init(table) do
-    t_name = :ets.new(table, [:set, :protected])
-    {:ok, t_name}
+  def init(_) do
+    map = %{}
+    {:ok, map}
   end
 
-  def handle_call({:set, {key, value}}, _from,  table) do
-    case :ets.lookup(table, key) do
-      [{_key, list}|_] -> status = :ets.insert(table, {key, list ++ [value]})
-                          {:reply, status, table}
-                    [] -> status = :ets.insert(table, {key, [value]})
-                          {:reply, status, table}
+  def handle_call({:set, {key, value}}, _from,  map) do
+    case Map.get(map, key) do
+       nil -> map = Map.put(map, key, [value])
+              {:reply, true, map}
+      list -> map = Map.put(map, key, list ++ [value])
+              {:reply, true, map}
     end
   end
 
-  def handle_call({:get, key}, _from, table) do
-    case :ets.lookup(table, key) do
-      [{_key, value}|_] -> {:reply, value, table}
-                     [] -> {:reply, [], table}
+  def handle_call({:get, key}, _from, map) do
+    case Map.get(map, key) do
+       nil -> {:reply, [], map}
+      list -> {:reply, list, map}
     end
   end
 
-  def handle_call({:push, {key, value}}, _from,  table) do
-    case :ets.lookup(table, key) do
-      [{_key, list}|_] -> :ets.insert(table, {key, list = [value | list]})
-                          {:reply, list, table}
-                    [] -> status = :ets.insert(table, {key, list = [value]})
-                          {:reply, list, table}
+  def handle_call({:push, {key, value}}, _from,  map) do
+    case Map.get(map, key) do
+       nil -> map = Map.put(map, key, list = [value])
+              {:reply, list, map}
+      list -> map = Map.put(map, key, list = [value | list])
+              {:reply, list, map}
     end
   end
 
-  def handle_call({:pop, key}, _from,  table) do
-    case :ets.lookup(table, key) do
-      [{_key, list}|_] -> {last_value, list} = list |> List.pop_at(-1)
-                          :ets.insert(table, {key, list})
-                          {:reply, last_value, table}
-                    [] -> {:reply, nil, table}
+  def handle_call({:pop, key}, _from,  map) do
+    case Map.get(map, key) do
+       nil -> {:reply, nil, map}
+      list -> {last_value, list} = list |> List.pop_at(-1)
+              map = Map.put(map, key, list)
+              {:reply, last_value, map}
     end
   end
 
-  def handle_call({:del, key}, _from, table) do
-    case is_has_object(table, key) do
-      true  -> :ets.delete(table, key)
-               {:reply, true, table}
-      false -> {:reply, false, table}
+  def handle_call({:del, key}, _from, map) do
+    case Map.get(map, key) do
+       nil -> {:reply, false, map}
+      list -> map = Map.delete(map, key)
+              {:reply, true, map}
     end
   end
 
-  def handle_call({:exists, key}, _from, table) do
-    status = is_has_object(table, key)
-    {:reply, status, table}
+  def handle_call({:exists, key}, _from, map) do
+    case Map.get(map, key) do
+       nil -> {:reply, false, map}
+      list -> {:reply, true, map}
+    end
   end
 
-  def handle_call(:flushall, _from, table) do
-    status = :ets.delete_all_objects(table)
-    {:reply, status, table}
+  def handle_call(:flushall, _from, map) do
+    map = %{}
+    {:reply, true, map}
   end
 end
