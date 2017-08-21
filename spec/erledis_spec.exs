@@ -54,13 +54,14 @@ defmodule ErledisSpec do
   end
 
   describe "push" do
-    context "with correct key" do
-      before do
-        Erledis.flushall()
-        Erledis.set("push", "word")
-      end
+    before do: Erledis.start_link
 
+    context "with correct key" do
       context "where key is defined" do
+        before do
+          Erledis.set("push", "word")
+        end
+
         it do
           expect(Erledis.push("push", 10)) |> to(eq [10, "word"])
           expect(Erledis.push("push", {1,2,3})) |> to(eq [{1,2,3}, 10, "word"])
