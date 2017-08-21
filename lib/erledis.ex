@@ -60,14 +60,6 @@ defmodule Erledis do
     GenServer.call(:erledis, :flushall)
   end
 
-  @spec is_has_object(atom, String.t()) :: boolean
-  defp is_has_object(table, key) do
-    case :ets.lookup(table, key) do
-      [] -> false
-       _ -> true
-    end
-  end
-
   defp error_message do
     "key argument must be a string"
   end
