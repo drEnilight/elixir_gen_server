@@ -104,12 +104,12 @@ defmodule Erledis do
     end
   end
 
-  def handle_call({:pop, key}, _from,  table) do
-    case :ets.lookup(table, key) do
-      [{_key, list}|_] -> {last_value, list} = list |> List.pop_at(-1)
-                          :ets.insert(table, {key, list})
-                          {:reply, last_value, table}
-                    [] -> {:reply, nil, table}
+  def handle_call({:pop, key}, _from,  map) do
+    case Map.get(map, key) do
+      list -> {last_value, list} = list |> List.pop_at(-1)
+              map = Map.put(map, key, list)
+              {:reply, last_value, map}
+       nil -> {:reply, nil, map}
     end
   end
 
