@@ -73,50 +73,50 @@ defmodule Erledis do
 
   def handle_call({:set, {key, value}}, _from,  map) do
     case Map.get(map, key) do
-      list -> map = Map.put(map, key, list ++ [value])
-              {:reply, true, map}
        nil -> map = Map.put(map, key, [value])
+              {:reply, true, map}
+      list -> map = Map.put(map, key, list ++ [value])
               {:reply, true, map}
     end
   end
 
   def handle_call({:get, key}, _from, map) do
     case Map.get(map, key) do
-      list -> {:reply, list, map}
        nil -> {:reply, [], map}
+      list -> {:reply, list, map}
     end
   end
 
   def handle_call({:push, {key, value}}, _from,  map) do
     case Map.get(map, key) do
-      list -> map = Map.put(map, key, list = [value | list])
-              {:reply, list, map}
        nil -> map = Map.put(map, key, list = [value])
+              {:reply, list, map}
+      list -> map = Map.put(map, key, list = [value | list])
               {:reply, list, map}
     end
   end
 
   def handle_call({:pop, key}, _from,  map) do
     case Map.get(map, key) do
+       nil -> {:reply, nil, map}
       list -> {last_value, list} = list |> List.pop_at(-1)
               map = Map.put(map, key, list)
               {:reply, last_value, map}
-       nil -> {:reply, nil, map}
     end
   end
 
   def handle_call({:del, key}, _from, map) do
     case Map.get(map, key) do
+       nil -> {:reply, false, map}
       list -> map = Map.delete(map, key)
               {:reply, true, map}
-       nil -> {:reply, false, map}
     end
   end
 
   def handle_call({:exists, key}, _from, map) do
     case Map.get(map, key) do
-      list -> {:reply, true, map}
        nil -> {:reply, false, map}
+      list -> {:reply, true, map}
     end
   end
 
