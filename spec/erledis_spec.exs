@@ -50,29 +50,29 @@ defmodule ErledisSpec do
     end
   end
 
-  describe "unshift" do
+  describe "push" do
     context "with correct key" do
       before do
         Erledis.flushall()
-        Erledis.set("unshift", "word")
+        Erledis.set("push", "word")
       end
 
       context "where key is defined" do
         it do
-          expect(Erledis.unshift("unshift", 10)) |> to(eq [10, "word"])
-          expect(Erledis.unshift("unshift", {1,2,3})) |> to(eq [{1,2,3}, 10, "word"])
+          expect(Erledis.push("push", 10)) |> to(eq [10, "word"])
+          expect(Erledis.push("push", {1,2,3})) |> to(eq [{1,2,3}, 10, "word"])
         end
       end
 
       context "where key is undefined" do
-        it do: expect(Erledis.unshift("atom", :atom)) |> to(eq [:atom])
-        it do: expect(Erledis.unshift("tuple", {1,2,3})) |> to(eq [{1,2,3}])
+        it do: expect(Erledis.push("atom", :atom)) |> to(eq [:atom])
+        it do: expect(Erledis.push("tuple", {1,2,3})) |> to(eq [{1,2,3}])
       end
     end
 
     context "with incorrect key" do
-      it do: expect(Erledis.unshift(1, 2)) |> to(eq "key argument must be a string")
-      it do: expect(Erledis.unshift([1], 2)) |> to(eq "key argument must be a string")
+      it do: expect(Erledis.push(1, 2)) |> to(eq "key argument must be a string")
+      it do: expect(Erledis.push([1], 2)) |> to(eq "key argument must be a string")
     end
   end
 
