@@ -81,15 +81,16 @@ defmodule ErledisSpec do
   end
 
   describe "pop" do
-    before do
-      Erledis.flushall()
-      Erledis.set("pop", "word")
-      Erledis.set("pop", [1,2,3])
-      Erledis.set("pop", {1,2,3})
-    end
+    before do: Erledis.start_link
 
     context "with correct key" do
       context "where key is defined" do
+        before do
+          Erledis.set("pop", "word")
+          Erledis.set("pop", [1,2,3])
+          Erledis.set("pop", {1,2,3})
+        end
+
         it do
           expect(Erledis.pop("pop")) |> to(eq {1,2,3})
           expect(Erledis.get("pop")) |> to(eq ["word", [1,2,3]])
