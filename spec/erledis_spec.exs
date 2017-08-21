@@ -112,17 +112,20 @@ defmodule ErledisSpec do
   end
 
   describe "delete" do
-    before do
-      Erledis.set("hello", "word")
-      Erledis.set("list", [1,2,3])
-    end
+    before do: Erledis.start_link
 
     context "element with correct key" do
+      before do
+        Erledis.set("hello", "word")
+        Erledis.set("list", [1,2,3])
+      end
+
       it do
         Erledis.del("hello")
         expect(Erledis.exists?("hello")) |> to(be_false())
         expect(Erledis.get("hello")) |> to(eq [])
       end
+
       it do
         Erledis.del("list")
         expect(Erledis.exists?("list")) |> to(be_false())
