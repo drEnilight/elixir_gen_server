@@ -4,6 +4,8 @@ defmodule ErledisSpec do
   before do: Erledis.start_link
 
   describe "set" do
+    before do: Erledis.start_link
+
     context "correct key" do
       it "with single element" do
         Erledis.set("set_1", {1,2,3})
