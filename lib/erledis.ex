@@ -15,10 +15,26 @@ defmodule Erledis do
     end
   end
 
-  @spec get(String.t()) :: any
+  @spec get(String.t()) :: list
   def get(key) do
     case is_binary(key) do
       true  -> GenServer.call(:erledis, {:get, key})
+      false -> error_message
+    end
+  end
+
+  @spec push(String.t(), any) :: list
+  def push(key, value) do
+    case is_binary(key) do
+      true  -> GenServer.call(:erledis, {:push, {key, value}})
+      false -> error_message
+    end
+  end
+
+  @spec pop(String.t()) :: any
+  def pop(key) do
+    case is_binary(key) do
+      true  -> GenServer.call(:erledis, {:pop, key})
       false -> error_message
     end
   end
@@ -31,6 +47,7 @@ defmodule Erledis do
     end
   end
 
+  @spec exists?(String.t()) :: boolean
   def exists?(key) do
     case is_binary(key) do
       true  -> GenServer.call(:erledis, {:exists, key})
@@ -75,6 +92,24 @@ defmodule Erledis do
     case :ets.lookup(table, key) do
       [{_key, value}|_] -> {:reply, value, table}
                      [] -> {:reply, [], table}
+    end
+  end
+
+  def handle_call({:push, {key, value}}, _from,  table) do
+    case :ets.lookup(table, key) do
+      [{_key, list}|_] -> :ets.insert(table, {key, list = [value | list]})
+                          {:reply, list, table}
+                    [] -> status = :ets.insert(table, {key, list = [value]})
+                          {:reply, list, table}
+    end
+  end
+
+  def handle_call({:pop, key}, _from,  table) do
+    case :ets.lookup(table, key) do
+      [{_key, list}|_] -> {last_value, list} = list |> List.pop_at(-1)
+                          :ets.insert(table, {key, list})
+                          {:reply, last_value, table}
+                    [] -> {:reply, nil, table}
     end
   end
 
