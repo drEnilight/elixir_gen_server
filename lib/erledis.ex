@@ -3,61 +3,68 @@ defmodule Erledis do
 
   # API
 
-  def start_link do
-    GenServer.start_link(__MODULE__, :erledis, name: :erledis)
+  def start_link(name) when is_binary(name) do
+    s_name = String.to_atom(name)
+    GenServer.start_link(__MODULE__, [], name: s_name)
   end
 
-  @spec set(String.t(), any) :: boolean
-  def set(key, value) do
+  @spec set(String.t(), String.t(), any) :: boolean
+  def set(name, key, value) do
     case is_binary(key) do
-      true  -> GenServer.call(:erledis, {:set, {key, value}})
+      true  -> GenServer.call(server_pid(name), {:set, {key, value}})
       false -> error_message
     end
   end
 
-  @spec get(String.t()) :: list
-  def get(key) do
+  @spec get(String.t(), String.t()) :: list
+  def get(name, key) do
     case is_binary(key) do
-      true  -> GenServer.call(:erledis, {:get, key})
+      true  -> GenServer.call(server_pid(name), {:get, key})
       false -> error_message
     end
   end
 
-  @spec push(String.t(), any) :: list
-  def push(key, value) do
+  @spec push(String.t(), String.t(), any) :: list
+  def push(name, key, value) do
     case is_binary(key) do
-      true  -> GenServer.call(:erledis, {:push, {key, value}})
+      true  -> GenServer.call(server_pid(name), {:push, {key, value}})
       false -> error_message
     end
   end
 
-  @spec pop(String.t()) :: any
-  def pop(key) do
+  @spec pop(String.t(), String.t()) :: any
+  def pop(name, key) do
     case is_binary(key) do
-      true  -> GenServer.call(:erledis, {:pop, key})
+      true  -> GenServer.call(server_pid(name), {:pop, key})
       false -> error_message
     end
   end
 
-  @spec del(String.t()) :: boolean
-  def del(key) do
+  @spec del(String.t(), String.t()) :: boolean
+  def del(name, key) do
     case is_binary(key) do
-      true  -> GenServer.call(:erledis, {:del, key})
+      true  -> GenServer.call(server_pid(name), {:del, key})
       false -> error_message
     end
   end
 
-  @spec exists?(String.t()) :: boolean
-  def exists?(key) do
+  @spec exists?(String.t(), String.t()) :: boolean
+  def exists?(name, key) do
     case is_binary(key) do
-      true  -> GenServer.call(:erledis, {:exists, key})
+      true  -> GenServer.call(server_pid(name), {:exists, key})
       false -> error_message
     end
   end
 
-  @spec flushall :: boolean
-  def flushall do
-    GenServer.call(:erledis, :flushall)
+  @spec flushall(String.t()) :: boolean
+  def flushall(name) do
+    GenServer.call(server_pid(name), :flushall)
+  end
+
+  @spec server_pid(String.t()) :: pid
+  defp server_pid(name) do
+    s_name = String.to_atom(name)
+    GenServer.whereis(s_name)
   end
 
   defp error_message do
