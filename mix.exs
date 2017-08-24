@@ -17,6 +17,7 @@ defmodule Erledis.Mixfile do
   end
 
   defp deps do
-    [{:espec, "~> 1.4.5", only: :test}]
+    [{:espec, "~> 1.4.5", only: :test},
+     {:benchee, "~> 0.6", only: :dev}]
   end
 end
