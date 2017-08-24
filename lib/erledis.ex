@@ -92,10 +92,10 @@ defmodule Erledis do
 
         def handle_call({:push, {key, value}}, _from,  map) do
           case Map.get(map, key) do
-             nil -> map = Map.put(map, key, [value])
-                    {:reply, value, map}
-            list -> map = Map.put(map, key, [value | list])
-                    {:reply, value, map}
+             nil -> map = Map.put(map, key, list = [value])
+                    {:reply, list, map}
+            list -> map = Map.put(map, key, list = [value | list])
+                    {:reply, list, map}
           end
         end
 
