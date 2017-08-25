@@ -1,2 +1,4 @@
-%{"espec": {:hex, :espec, "1.4.5", "42defe77dadd02c011281a1ee22c5e468303d2806c024e9ee9be6d18171d771f", [], [{:meck, "0.8.7", [hex: :meck, repo: "hexpm", optional: false]}], "hexpm"},
-  "meck": {:hex, :meck, "0.8.7", "ebad16ca23f685b07aed3bc011efff65fbaf28881a8adf925428ef5472d390ee", [], [], "hexpm"}}
+%{"benchee": {:hex, :benchee, "0.9.0", "433d946b0e4755e186fe564568ead4f593b0d15337fcffa95ed7d5b8a6612670", [:mix], [{:deep_merge, "~> 0.1", [hex: :deep_merge, repo: "hexpm", optional: false]}], "hexpm"},
+  "deep_merge": {:hex, :deep_merge, "0.1.1", "c27866a7524a337b6a039eeb8dd4f17d458fd40fbbcb8c54661b71a22fffe846", [:mix], [], "hexpm"},
+  "espec": {:hex, :espec, "1.4.5", "42defe77dadd02c011281a1ee22c5e468303d2806c024e9ee9be6d18171d771f", [:mix], [{:meck, "0.8.7", [hex: :meck, repo: "hexpm", optional: false]}], "hexpm"},
+  "meck": {:hex, :meck, "0.8.7", "ebad16ca23f685b07aed3bc011efff65fbaf28881a8adf925428ef5472d390ee", [:rebar3], [], "hexpm"}}
