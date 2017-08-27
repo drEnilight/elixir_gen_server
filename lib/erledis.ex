@@ -10,14 +10,6 @@ defmodule Erledis do
           GenServer.start_link(__MODULE__, [], name: __MODULE__)
         end
 
-        @spec set(String.t(), any) :: boolean
-        def set(key, value) do
-          case is_binary(key) do
-            true  -> GenServer.call(__MODULE__, {:set, {key, value}})
-            false -> error_message()
-          end
-        end
-
         @spec get(String.t()) :: list
         def get(key) do
           case is_binary(key) do
@@ -26,7 +18,7 @@ defmodule Erledis do
           end
         end
 
-        @spec push(String.t(), any) :: list
+        @spec push(String.t(), any) :: any
         def push(key, value) do
           case is_binary(key) do
             true  -> GenServer.call(__MODULE__, {:push, {key, value}})
@@ -74,19 +66,11 @@ defmodule Erledis do
           {:ok, map}
         end
 
-        def handle_call({:set, {key, value}}, _from,  map) do
-          case Map.get(map, key) do
-            nil  -> map = Map.put(map, key, [value])
-                    {:reply, true, map}
-            list -> map = Map.put(map, key, list ++ [value])
-                    {:reply, true, map}
-          end
-        end
-
         def handle_call({:get, key}, _from, map) do
-          case Map.get(map, key) do
+          case Map.get(map, key <> "_read") || Map.get(map, key <> "_write") do
              nil -> {:reply, [], map}
-            list -> {:reply, list, map}
+            list -> list = join_two_queues(map, key)
+                    {:reply, list, map}
           end
         end
 
@@ -94,10 +78,10 @@ defmodule Erledis do
           case Map.get(map, key <> "_read") || Map.get(map, key <> "_write") do
             empty when empty in [[], nil] -> push_to_empty_queue(map, key, value)
                                      list -> case Map.get(map, key <> "_write") do
-                                                nil -> map = Map.put(map, key <> "_write", list = [value])
-                                                       {:reply, list, map}
-                                               list -> map = Map.put(map, key <> "_write", list = [value | list])
-                                                       {:reply, list, map}
+                                                nil -> map = Map.put(map, key <> "_write", [value])
+                                                       {:reply, value, map}
+                                               list -> map = Map.put(map, key <> "_write", [value | list])
+                                                       {:reply, value, map}
                                               end
                                       end
         end
@@ -116,15 +100,17 @@ defmodule Erledis do
         end
 
         def handle_call({:del, key}, _from, map) do
-          case Map.get(map, key) do
+          case Map.get(map, key <> "_read") || Map.get(map, key <> "_write") do
              nil -> {:reply, false, map}
-            list -> map = Map.delete(map, key)
+            list -> map = map
+                          |> Map.delete(key <> "_read")
+                          |> Map.delete(key <> "_write")
                     {:reply, true, map}
           end
         end
 
         def handle_call({:exists, key}, _from, map) do
-          case Map.get(map, key) do
+          case Map.get(map, key <> "_read") || Map.get(map, key <> "_write") do
              nil -> {:reply, false, map}
             list -> {:reply, true, map}
           end
@@ -135,11 +121,17 @@ defmodule Erledis do
           {:reply, true, map}
         end
 
-        defp reverse_writing_queue(map, list, key) do
-          reverse_list = list |> Enum.reverse
-          map = Map.delete(map, key <> "_write")
-          Map.put(map, key <> "_read", reverse_list)
-          {map, reverse_list}
+        defp get_queue_values(map, key) do
+          case Map.get(map, key) do
+            empty when empty in [[], nil] -> []
+                                     list -> list
+          end
+        end
+
+        defp join_two_queues(map, key) do
+          read_queue = get_queue_values(map, key <>  "_read")
+          write_queue = get_queue_values(map, key <>  "_write") |> Enum.reverse
+          read_queue ++ write_queue
         end
 
         defp push_to_empty_queue(map, key, value) do
@@ -151,6 +143,13 @@ defmodule Erledis do
           [value | tail] = list
           map = Map.put(map, key <> "_read", tail)
           {map, value}
+        end
+
+        defp reverse_writing_queue(map, list, key) do
+          reverse_list = list |> Enum.reverse
+          map = Map.delete(map, key <> "_write")
+          Map.put(map, key <> "_read", reverse_list)
+          {map, reverse_list}
         end
       end
     end
