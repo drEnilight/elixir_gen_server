@@ -91,20 +91,27 @@ defmodule Erledis do
         end
 
         def handle_call({:push, {key, value}}, _from,  map) do
-          case Map.get(map, key) do
-             nil -> map = Map.put(map, key, list = [value])
-                    {:reply, list, map}
-            list -> map = Map.put(map, key, list = [value | list])
-                    {:reply, list, map}
-          end
+          case Map.get(map, key <> "_read") || Map.get(map, key <> "_write") do
+            empty when empty in [[], nil] -> push_to_empty_queue(map, key, value)
+                                     list -> case Map.get(map, key <> "_write") do
+                                                nil -> map = Map.put(map, key <> "_write", list = [value])
+                                                       {:reply, list, map}
+                                               list -> map = Map.put(map, key <> "_write", list = [value | list])
+                                                       {:reply, list, map}
+                                              end
+                                      end
         end
 
         def handle_call({:pop, key}, _from,  map) do
-          case Map.get(map, key) do
-              nil -> {:reply, nil, map}
-             list -> {last_value, list} = list |> List.pop_at(-1)
-                     map = Map.put(map, key, list)
-                     {:reply, last_value, map}
+          case Map.get(map, key <> "_read") do
+            empty when empty in [[], nil] ->  case Map.get(map, key <> "_write") do
+                                                 nil -> {:reply, nil, map}
+                                                list -> {map, list} = reverse_writing_queue(map, list, key)
+                                                        {map, value} = pop_reading_queue(map, list, key)
+                                                        {:reply, value, map}
+                                              end
+                                     list -> {map, value} = pop_reading_queue(map, list, key)
+                                             {:reply, value, map}
           end
         end
 
@@ -126,6 +133,24 @@ defmodule Erledis do
         def handle_call(:flushall, _from, map) do
           map = %{}
           {:reply, true, map}
+        end
+
+        defp reverse_writing_queue(map, list, key) do
+          reverse_list = list |> Enum.reverse
+          map = Map.delete(map, key <> "_write")
+          Map.put(map, key <> "_read", reverse_list)
+          {map, reverse_list}
+        end
+
+        defp push_to_empty_queue(map, key, value) do
+          map = Map.put(map, key <> "_read", list = [value])
+          {:reply, list, map}
+        end
+
+        defp pop_reading_queue(map, list, key) do
+          [value | tail] = list
+          map = Map.put(map, key <> "_read", tail)
+          {map, value}
         end
       end
     end

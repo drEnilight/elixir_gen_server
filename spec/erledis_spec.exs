@@ -64,13 +64,13 @@ defmodule ErledisSpec do
 
     context "with correct key" do
       context "where key is defined" do
-        before do
-          server().set("push", "word")
+        it "should return reading queue when all queues is empty" do
+          expect(server().push("push", 10)) |> to(eq [10])
         end
 
-        it do
-          expect(server().push("push", 10)) |> to(eq [10, "word"])
-          expect(server().push("push", {1,2,3})) |> to(eq [{1,2,3}, 10, "word"])
+        it "should return writing queue when reading queue is not empty" do
+          server().push("push", 10)
+          expect(server().push("push", "hello")) |> to(eq ["hello"])
         end
       end
 
@@ -94,16 +94,16 @@ defmodule ErledisSpec do
     context "with correct key" do
       context "where key is defined" do
         before do
-          server().set("pop", "word")
-          server().set("pop", [1,2,3])
-          server().set("pop", {1,2,3})
+          server().push("pop", "word")
         end
 
-        it do
-          expect(server().pop("pop")) |> to(eq {1,2,3})
-          expect(server().get("pop")) |> to(eq ["word", [1,2,3]])
-          expect(server().pop("pop")) |> to(eq [1,2,3])
-          expect(server().get("pop")) |> to(eq ["word"])
+        it "should get first value in queue" do
+          expect(server().pop("pop")) |> to(eq "word")
+        end
+
+        it "should get nil if queue is empty" do
+          server().pop("pop")
+          expect(server().pop("pop")) |> to(eq nil)
         end
       end
 
