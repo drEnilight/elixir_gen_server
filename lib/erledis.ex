@@ -116,9 +116,11 @@ defmodule Erledis do
         end
 
         def handle_call({:del, key}, _from, map) do
-          case Map.get(map, key) do
+          case Map.get(map, key <> "_read") || Map.get(map, key <> "_write") do
              nil -> {:reply, false, map}
-            list -> map = Map.delete(map, key)
+            list -> map = map
+                          |> Map.delete(key <> "_read")
+                          |> Map.delete(key <> "_write")
                     {:reply, true, map}
           end
         end

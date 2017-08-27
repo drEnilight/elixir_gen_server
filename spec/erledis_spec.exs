@@ -126,20 +126,16 @@ defmodule ErledisSpec do
 
     context "element with correct key" do
       before do
-        server().set("hello", "word")
-        server().set("list", [1,2,3])
+        server().push("hello", "word")
       end
 
-      it do
-        server().del("hello")
+      it "should return true when key is defined" do
+        expect(server().del("hello")) |> to(be_true())
         expect(server().exists?("hello")) |> to(be_false())
-        expect(server().get("hello")) |> to(eq [])
       end
 
-      it do
-        server().del("list")
-        expect(server().exists?("list")) |> to(be_false())
-        expect(server().get("list")) |> to(eq [])
+      it "should return false when key is undefined" do
+        expect(server().del("test")) |> to(be_false())
       end
     end
 
