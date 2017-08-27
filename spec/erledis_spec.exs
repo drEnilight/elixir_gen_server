@@ -8,14 +8,19 @@ defmodule ErledisSpec do
 
     context "value by key" do
       before do
-        server().set("get_1", "word")
-        server().set("get_1", {1,2,3})
-        server().set("get_2", [1,2,3])
+        server().push("tuple", "word")
+        server().push("tuple", {1,2,3})
+        server().push("list", [1,2,3])
       end
 
-      it do
-        expect(server().get("get_1")) |> to(eq ["word", {1,2,3}])
-        expect(server().get("get_2")) |> to(eq [[1,2,3]])
+      it "should return list of values when key is defined" do
+        expect(server().get("tuple")) |> to(eq ["word", {1,2,3}])
+        expect(server().get("list")) |> to(eq [[1,2,3]])
+      end
+
+      it "should return empty list when key is undefined" do
+        expect(server().get("atom")) |> to(eq [])
+        expect(server().get("array")) |> to(eq [])
       end
     end
 

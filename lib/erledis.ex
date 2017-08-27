@@ -67,9 +67,10 @@ defmodule Erledis do
         end
 
         def handle_call({:get, key}, _from, map) do
-          case Map.get(map, key) do
+          case Map.get(map, key <> "_read") || Map.get(map, key <> "_write") do
              nil -> {:reply, [], map}
-            list -> {:reply, list, map}
+            list -> list = join_two_queues(map, key)
+                    {:reply, list, map}
           end
         end
 
@@ -120,11 +121,17 @@ defmodule Erledis do
           {:reply, true, map}
         end
 
-        defp reverse_writing_queue(map, list, key) do
-          reverse_list = list |> Enum.reverse
-          map = Map.delete(map, key <> "_write")
-          Map.put(map, key <> "_read", reverse_list)
-          {map, reverse_list}
+        defp get_queue_values(map, key) do
+          case Map.get(map, key) do
+            empty when empty in [[], nil] -> []
+                                     list -> list
+          end
+        end
+
+        defp join_two_queues(map, key) do
+          read_queue = get_queue_values(map, key <>  "_read")
+          write_queue = get_queue_values(map, key <>  "_write") |> Enum.reverse
+          read_queue ++ write_queue
         end
 
         defp push_to_empty_queue(map, key, value) do
@@ -136,6 +143,13 @@ defmodule Erledis do
           [value | tail] = list
           map = Map.put(map, key <> "_read", tail)
           {map, value}
+        end
+
+        defp reverse_writing_queue(map, list, key) do
+          reverse_list = list |> Enum.reverse
+          map = Map.delete(map, key <> "_write")
+          Map.put(map, key <> "_read", reverse_list)
+          {map, reverse_list}
         end
       end
     end
