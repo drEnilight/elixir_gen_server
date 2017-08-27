@@ -36,20 +36,9 @@ defmodule ErledisSpec do
     before do: server().start_link
 
     context "with correct key" do
-      context "where key is defined" do
-        it "should return reading queue when all queues is empty" do
-          expect(server().push("push", 10)) |> to(eq [10])
-        end
-
-        it "should return writing queue when reading queue is not empty" do
-          server().push("push", 10)
-          expect(server().push("push", "hello")) |> to(eq ["hello"])
-        end
-      end
-
-      context "where key is undefined" do
-        it do: expect(server().push("atom", :atom)) |> to(eq [:atom])
-        it do: expect(server().push("tuple", {1,2,3})) |> to(eq [{1,2,3}])
+      it "should return value witch a pushed" do
+        expect(server().push("push", 10)) |> to(eq [10])
+        expect(server().exists?("push")) |> to(be_true())
       end
     end
 

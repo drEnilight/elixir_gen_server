@@ -18,7 +18,7 @@ defmodule Erledis do
           end
         end
 
-        @spec push(String.t(), any) :: list
+        @spec push(String.t(), any) :: any
         def push(key, value) do
           case is_binary(key) do
             true  -> GenServer.call(__MODULE__, {:push, {key, value}})
@@ -77,10 +77,10 @@ defmodule Erledis do
           case Map.get(map, key <> "_read") || Map.get(map, key <> "_write") do
             empty when empty in [[], nil] -> push_to_empty_queue(map, key, value)
                                      list -> case Map.get(map, key <> "_write") do
-                                                nil -> map = Map.put(map, key <> "_write", list = [value])
-                                                       {:reply, list, map}
-                                               list -> map = Map.put(map, key <> "_write", list = [value | list])
-                                                       {:reply, list, map}
+                                                nil -> map = Map.put(map, key <> "_write", [value])
+                                                       {:reply, value, map}
+                                               list -> map = Map.put(map, key <> "_write", [value | list])
+                                                       {:reply, value, map}
                                               end
                                       end
         end
