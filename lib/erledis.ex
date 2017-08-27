@@ -126,7 +126,7 @@ defmodule Erledis do
         end
 
         def handle_call({:exists, key}, _from, map) do
-          case Map.get(map, key) do
+          case Map.get(map, key <> "_read") || Map.get(map, key <> "_write") do
              nil -> {:reply, false, map}
             list -> {:reply, true, map}
           end

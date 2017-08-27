@@ -157,12 +157,15 @@ defmodule ErledisSpec do
 
     context "element with correct key" do
       before do
-        server().set("hello", "word")
-        server().set("list", [1,2,3])
+        server().push("list", [1,2,3])
       end
 
-      it do: expect(server().exists?("hello")) |> to(be_true())
-      it do: expect(server().exists?("list")) |> to(be_true())
+      it "should return true if element exists" do
+        expect(server().exists?("list")) |> to(be_true())
+      end
+      it "should return false if element" do
+        expect(server().exists?("hello")) |> to(be_false())
+      end
     end
 
     context "element with incorrect key" do
@@ -181,8 +184,8 @@ defmodule ErledisSpec do
 
     before do
       server().start_link()
-      server().set("hello", "word")
-      server().set("list", [1,2,3])
+      server().push("hello", "word")
+      server().push("list", [1,2,3])
     end
 
     context "should delete all elements" do
