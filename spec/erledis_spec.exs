@@ -1,33 +1,6 @@
 defmodule ErledisSpec do
   use ESpec
 
-  describe "set" do
-    let server: Erledis.generate_gen_server
-
-    before do: server().start_link
-
-    context "correct key" do
-      it "with single element" do
-        server().set("set_1", {1,2,3})
-        expect(server().exists?("set_1")) |> to(be_true())
-        expect(server().get("set_1")) |> to(eq [{1,2,3}])
-      end
-
-      it "with multiple elements" do
-        server().set("set_2", "word")
-        expect(server().exists?("set_2")) |> to(be_true())
-        expect(server().get("set_2")) |> to(eq ["word"])
-        server().set("set_2", [1,2,3])
-        expect(server().get("set_2")) |> to(eq ["word", [1,2,3]])
-      end
-    end
-
-    context "element with incorrect key" do
-      it do: expect(server().set(1, 2)) |> to(eq "key argument must be a string")
-      it do: expect(server().set([1], 2)) |> to(eq "key argument must be a string")
-    end
-  end
-
   describe "get" do
     let server: Erledis.generate_gen_server
 

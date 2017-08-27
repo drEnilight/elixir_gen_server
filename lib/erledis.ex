@@ -10,14 +10,6 @@ defmodule Erledis do
           GenServer.start_link(__MODULE__, [], name: __MODULE__)
         end
 
-        @spec set(String.t(), any) :: boolean
-        def set(key, value) do
-          case is_binary(key) do
-            true  -> GenServer.call(__MODULE__, {:set, {key, value}})
-            false -> error_message()
-          end
-        end
-
         @spec get(String.t()) :: list
         def get(key) do
           case is_binary(key) do
@@ -72,15 +64,6 @@ defmodule Erledis do
         def init(_) do
           map = %{}
           {:ok, map}
-        end
-
-        def handle_call({:set, {key, value}}, _from,  map) do
-          case Map.get(map, key) do
-            nil  -> map = Map.put(map, key, [value])
-                    {:reply, true, map}
-            list -> map = Map.put(map, key, list ++ [value])
-                    {:reply, true, map}
-          end
         end
 
         def handle_call({:get, key}, _from, map) do
